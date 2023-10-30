@@ -25,6 +25,29 @@ contract AdvisorVestingWalletTest is Test {
         token = vesting.TOKEN();
     }
 
+    function _getVestedTimestamp(
+        uint256 vestedPercent
+    ) private view returns (uint256) {
+        uint256 vestedPercentDenominator = 100;
+
+        // Set the timestamp anywhere from the vesting start to the end.
+        return
+            uint256(vesting.start()) +
+            ((uint256(vesting.duration()) * vestedPercent) /
+                vestedPercentDenominator);
+    }
+
+    function _getWithdrawVestingAmounts()
+        private
+        view
+        returns (uint256 finalReleasableAmount, uint256 withdrawAmount)
+    {
+        finalReleasableAmount = vesting.releasable(token);
+        withdrawAmount =
+            token.balanceOf(address(vesting)) -
+            finalReleasableAmount;
+    }
+
     /*//////////////////////////////////////////////////////////////
                              withdrawUnvested
     //////////////////////////////////////////////////////////////*/
@@ -42,20 +65,15 @@ contract AdvisorVestingWalletTest is Test {
     function testWithdrawUnvested() external {
         uint256 vestedPercent = 75;
         uint256 totalVestingAmount = 1e18;
-        uint256 vestedPercentDenominator = 100;
 
-        deal(vesting.TOKEN(), address(vesting), totalVestingAmount);
+        deal(token, address(vesting), totalVestingAmount);
 
-        vm.warp(
-            uint256(vesting.start()) +
-                ((uint256(vesting.duration()) * vestedPercent) /
-                    vestedPercentDenominator)
-        );
+        vm.warp(_getVestedTimestamp(vestedPercent));
 
-        uint256 withdrawableAmount = totalVestingAmount -
-            (totalVestingAmount * vestedPercent) /
-            vestedPercentDenominator;
-        uint256 finalReleasableAmount = totalVestingAmount - withdrawableAmount;
+        (
+            uint256 finalReleasableAmount,
+            uint256 withdrawAmount
+        ) = _getWithdrawVestingAmounts();
         uint256 projectOwnerTokenBalanceBeforeWithdraw = token.balanceOf(
             projectOwner
         );
@@ -66,7 +84,7 @@ contract AdvisorVestingWalletTest is Test {
         vm.prank(projectOwner);
         vm.expectEmit(false, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(finalReleasableAmount, withdrawableAmount);
+        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
 
         vesting.withdrawUnvested();
 
@@ -75,7 +93,7 @@ contract AdvisorVestingWalletTest is Test {
             token.balanceOf(beneficiary)
         );
         assertEq(
-            projectOwnerTokenBalanceBeforeWithdraw + withdrawableAmount,
+            projectOwnerTokenBalanceBeforeWithdraw + withdrawAmount,
             token.balanceOf(projectOwner)
         );
         assertEq(
@@ -86,36 +104,39 @@ contract AdvisorVestingWalletTest is Test {
     }
 
     function testWithdrawUnvestedFuzz(
+        bool callReleaseFirst,
         uint8 vestedPercent,
         uint80 totalVestingAmount
     ) external {
         vm.assume(vestedPercent <= 100);
         vm.assume(totalVestingAmount != 0);
 
-        deal(vesting.TOKEN(), address(vesting), totalVestingAmount);
+        deal(token, address(vesting), totalVestingAmount);
 
-        uint256 vestedPercentDenominator = 100;
+        vm.warp(_getVestedTimestamp(vestedPercent));
 
-        // Set the timestamp anywhere from the vesting start to the end.
-        vm.warp(
-            uint256(vesting.start()) +
-                ((uint256(vesting.duration()) * uint256(vestedPercent)) /
-                    vestedPercentDenominator)
-        );
+        if (callReleaseFirst) {
+            vm.prank(beneficiary);
 
-        uint256 withdrawableAmount = uint256(totalVestingAmount) -
-            (uint256(totalVestingAmount) * uint256(vestedPercent)) /
-            vestedPercentDenominator;
-        uint256 finalReleasableAmount = totalVestingAmount - withdrawableAmount;
+            vesting.release(token);
+        }
+
+        (
+            uint256 finalReleasableAmount,
+            uint256 withdrawAmount
+        ) = _getWithdrawVestingAmounts();
         uint256 tokenBalanceBeforeWithdraw = token.balanceOf(projectOwner);
         uint256 beneficiaryTokenBalanceBeforeWithdraw = token.balanceOf(
             beneficiary
         );
 
+        // Should be zero if the advisor already claimed their vested tokens.
+        if (callReleaseFirst) assertEq(0, finalReleasableAmount);
+
         vm.prank(projectOwner);
         vm.expectEmit(false, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(finalReleasableAmount, withdrawableAmount);
+        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
 
         vesting.withdrawUnvested();
 
@@ -124,7 +145,7 @@ contract AdvisorVestingWalletTest is Test {
             token.balanceOf(beneficiary)
         );
         assertEq(
-            tokenBalanceBeforeWithdraw + withdrawableAmount,
+            tokenBalanceBeforeWithdraw + withdrawAmount,
             token.balanceOf(projectOwner)
         );
         assertEq(
