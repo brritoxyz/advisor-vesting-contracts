@@ -31,7 +31,10 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     // BRR token contract.
     address public constant TOKEN = 0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884;
 
-    event WithdrawUnvested(uint256 amount);
+    event WithdrawUnvested(
+        uint256 finalReleasableAmount,
+        uint256 withdrawAmount
+    );
 
     constructor(
         address beneficiaryAddress
@@ -40,14 +43,17 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     }
 
     /**
-     * @notice Transfer BRR back to the owner with the releasable amount deducted.
+     * @notice Transfer the final amount to the beneficiary and the remainder to the owner.
      */
     function withdrawUnvested() external onlyOwner {
-        uint256 amount = TOKEN.balanceOf(address(this)) - releasable(TOKEN);
+        uint256 finalReleasableAmount = releasable(TOKEN);
+        uint256 withdrawAmount = TOKEN.balanceOf(address(this)) -
+            finalReleasableAmount;
 
-        TOKEN.safeTransfer(owner(), amount);
+        TOKEN.safeTransfer(beneficiary(), finalReleasableAmount);
+        TOKEN.safeTransfer(owner(), withdrawAmount);
 
-        emit WithdrawUnvested(amount);
+        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
     }
 
     // Overridden since advisors are compensated in BRR.

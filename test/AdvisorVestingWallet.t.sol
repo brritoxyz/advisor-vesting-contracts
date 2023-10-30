@@ -12,11 +12,15 @@ contract AdvisorVestingWalletTest is Test {
     AdvisorVestingWallet public immutable vesting;
     address public immutable projectOwner;
     address public immutable token;
+    address public immutable beneficiary = address(this);
 
-    event WithdrawUnvested(uint256 amount);
+    event WithdrawUnvested(
+        uint256 finalReleasableAmount,
+        uint256 withdrawAmount
+    );
 
     constructor() {
-        vesting = new AdvisorVestingWallet(address(this));
+        vesting = new AdvisorVestingWallet(beneficiary);
         projectOwner = vesting.owner();
         token = vesting.TOKEN();
     }
@@ -51,19 +55,34 @@ contract AdvisorVestingWalletTest is Test {
         uint256 withdrawableAmount = totalVestingAmount -
             (totalVestingAmount * vestedPercent) /
             vestedPercentDenominator;
-        uint256 tokenBalanceBeforeWithdraw = token.balanceOf(projectOwner);
+        uint256 finalReleasableAmount = totalVestingAmount - withdrawableAmount;
+        uint256 projectOwnerTokenBalanceBeforeWithdraw = token.balanceOf(
+            projectOwner
+        );
+        uint256 beneficiaryTokenBalanceBeforeWithdraw = token.balanceOf(
+            beneficiary
+        );
 
         vm.prank(projectOwner);
         vm.expectEmit(false, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(withdrawableAmount);
+        emit WithdrawUnvested(finalReleasableAmount, withdrawableAmount);
 
         vesting.withdrawUnvested();
 
         assertEq(
-            tokenBalanceBeforeWithdraw + withdrawableAmount,
+            beneficiaryTokenBalanceBeforeWithdraw + finalReleasableAmount,
+            token.balanceOf(beneficiary)
+        );
+        assertEq(
+            projectOwnerTokenBalanceBeforeWithdraw + withdrawableAmount,
             token.balanceOf(projectOwner)
         );
+        assertEq(
+            token.balanceOf(beneficiary) + token.balanceOf(projectOwner),
+            totalVestingAmount
+        );
+        assertEq(0, token.balanceOf(address(vesting)));
     }
 
     function testWithdrawUnvestedFuzz(
@@ -87,18 +106,31 @@ contract AdvisorVestingWalletTest is Test {
         uint256 withdrawableAmount = uint256(totalVestingAmount) -
             (uint256(totalVestingAmount) * uint256(vestedPercent)) /
             vestedPercentDenominator;
+        uint256 finalReleasableAmount = totalVestingAmount - withdrawableAmount;
         uint256 tokenBalanceBeforeWithdraw = token.balanceOf(projectOwner);
+        uint256 beneficiaryTokenBalanceBeforeWithdraw = token.balanceOf(
+            beneficiary
+        );
 
         vm.prank(projectOwner);
         vm.expectEmit(false, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(withdrawableAmount);
+        emit WithdrawUnvested(finalReleasableAmount, withdrawableAmount);
 
         vesting.withdrawUnvested();
 
         assertEq(
+            beneficiaryTokenBalanceBeforeWithdraw + finalReleasableAmount,
+            token.balanceOf(beneficiary)
+        );
+        assertEq(
             tokenBalanceBeforeWithdraw + withdrawableAmount,
             token.balanceOf(projectOwner)
         );
+        assertEq(
+            token.balanceOf(beneficiary) + token.balanceOf(projectOwner),
+            totalVestingAmount
+        );
+        assertEq(0, token.balanceOf(address(vesting)));
     }
 }
