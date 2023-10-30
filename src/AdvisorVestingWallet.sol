@@ -29,7 +29,7 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     }
 
     /**
-     * @notice Transfer BRR back to the protocol, minus the releasable amount.
+     * @notice Transfer BRR back to the protocol with the releasable amount deducted.
      */
     function withdrawUnvested() external onlyOwner {
         _BRR.safeTransfer(
@@ -37,4 +37,16 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
             _BRR.balanceOf(address(this)) - releasable(_BRR)
         );
     }
+
+    // Overridden since advisors are compensated in BRR.
+    function released() public view override returns (uint256) {}
+
+    // Overridden since advisors are compensated in BRR.
+    function releasable() public view override returns (uint256) {}
+
+    // Overridden since advisors are compensated in BRR.
+    function release() public override {}
+
+    // Overridden since advisors are compensated in BRR.
+    function vestedAmount(uint64) public view override returns (uint256) {}
 }
