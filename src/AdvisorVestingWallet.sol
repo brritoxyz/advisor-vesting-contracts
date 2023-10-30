@@ -16,9 +16,6 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 contract AdvisorVestingWallet is Ownable, VestingWallet {
     using SafeTransferLib for address;
 
-    // BRR token contract
-    address public constant TOKEN = 0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884;
-
     // Project address (ownership may be transferred at will).
     // Allows the project owner to withdraw the advisor tokens for ex-advisors.
     address private constant _INITIAL_OWNER =
@@ -31,6 +28,11 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     // 1730390400 - _VESTING_START = 31622400.
     uint64 private constant _VESTING_DURATION = 31622400;
 
+    // BRR token contract
+    address public constant TOKEN = 0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884;
+
+    event WithdrawUnvested(uint256 amount);
+
     constructor(
         address beneficiaryAddress
     ) VestingWallet(beneficiaryAddress, _VESTING_START, _VESTING_DURATION) {
@@ -41,10 +43,11 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
      * @notice Transfer BRR back to the protocol with the releasable amount deducted.
      */
     function withdrawUnvested() external onlyOwner {
-        TOKEN.safeTransfer(
-            owner(),
-            TOKEN.balanceOf(address(this)) - releasable(TOKEN)
-        );
+        uint256 amount = TOKEN.balanceOf(address(this)) - releasable(TOKEN);
+
+        TOKEN.safeTransfer(owner(), amount);
+
+        emit WithdrawUnvested(amount);
     }
 
     // Overridden since advisors are compensated in BRR.
