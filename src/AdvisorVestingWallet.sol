@@ -46,14 +46,8 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
      * @notice Transfer the final amount to the beneficiary and the remainder to the owner.
      */
     function withdrawUnvested() external onlyOwner {
-        uint256 finalReleasableAmount = releasable(TOKEN);
-        uint256 withdrawAmount = TOKEN.balanceOf(address(this)) -
-            finalReleasableAmount;
-
-        TOKEN.safeTransfer(beneficiary(), finalReleasableAmount);
-        TOKEN.safeTransfer(owner(), withdrawAmount);
-
-        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
+        release(TOKEN);
+        TOKEN.safeTransfer(owner(), TOKEN.balanceOf(address(this)));
     }
 
     // Overridden since advisors are compensated in BRR.

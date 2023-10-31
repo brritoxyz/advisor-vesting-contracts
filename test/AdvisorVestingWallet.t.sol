@@ -14,10 +14,7 @@ contract AdvisorVestingWalletTest is Test {
     address public immutable token;
     address public immutable beneficiary = address(this);
 
-    event WithdrawUnvested(
-        uint256 finalReleasableAmount,
-        uint256 withdrawAmount
-    );
+    event ERC20Released(address indexed token, uint256 amount);
 
     constructor() {
         vesting = new AdvisorVestingWallet(beneficiary);
@@ -82,9 +79,9 @@ contract AdvisorVestingWalletTest is Test {
         );
 
         vm.prank(projectOwner);
-        vm.expectEmit(false, false, false, true, address(vesting));
+        vm.expectEmit(true, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
+        emit ERC20Released(token, finalReleasableAmount);
 
         vesting.withdrawUnvested();
 
@@ -134,9 +131,9 @@ contract AdvisorVestingWalletTest is Test {
         if (callReleaseFirst) assertEq(0, finalReleasableAmount);
 
         vm.prank(projectOwner);
-        vm.expectEmit(false, false, false, true, address(vesting));
+        vm.expectEmit(true, false, false, true, address(vesting));
 
-        emit WithdrawUnvested(finalReleasableAmount, withdrawAmount);
+        emit ERC20Released(token, finalReleasableAmount);
 
         vesting.withdrawUnvested();
 
