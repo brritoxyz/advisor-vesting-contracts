@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.0;
 
 import {Ownable} from "solady/auth/Ownable.sol";
 import {VestingWallet} from "openzeppelin-contracts/finance/VestingWallet.sol";
