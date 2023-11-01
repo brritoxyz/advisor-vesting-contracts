@@ -50,6 +50,9 @@ contract AdvisorVestingWalletScript is Script {
         address feistyDogeDAO = address(
             new AdvisorVestingWallet(0x1d4B9b250B1Bd41DAA35d94BF9204Ec1b0494eE3)
         );
+        address pyk = address(
+            new AdvisorVestingWallet(0x17ae0a6BE2e97b384165626dB2569729d5006640)
+        );
 
         _BRR.mint(theLlamasTreasury, 20_000_000e18);
         _BRR.mint(theLlamasCore, 10_000_000e18);
@@ -63,6 +66,7 @@ contract AdvisorVestingWalletScript is Script {
         _BRR.mint(proteccLabsKris, 500_000e18);
         _BRR.mint(proteccLabsMagnus, 500_000e18);
         _BRR.mint(feistyDogeDAO, 1_000_000e18);
+        _BRR.mint(pyk, 2_500_000e18);
 
         // The advisors below have not provided us with a new Gnosis Safe address on Base.
         // The below will be updated as we receive their new addresses.
