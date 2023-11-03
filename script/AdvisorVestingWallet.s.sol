@@ -56,6 +56,9 @@ contract AdvisorVestingWalletScript is Script {
         address llamaAirforce = address(
             new AdvisorVestingWallet(0x375B28A603Be144a646A506fB6673cc3182fC8Df)
         );
+        address questDAO = address(
+            new AdvisorVestingWallet(0x71F594eC26BD9f84B55735136216e0F359f19EFc)
+        );
 
         _BRR.mint(theLlamasTreasury, 20_000_000e18);
         _BRR.mint(theLlamasCore, 10_000_000e18);
@@ -71,17 +74,14 @@ contract AdvisorVestingWalletScript is Script {
         _BRR.mint(feistyDogeDAO, 1_000_000e18);
         _BRR.mint(pyk, 2_500_000e18);
         _BRR.mint(llamaAirforce, 5_000_000e18);
+        _BRR.mint(questDAO, 1_000_000e18);
 
         // The advisors below have not provided us with a new Gnosis Safe address on Base.
         // The below will be updated as we receive their new addresses.
-        // address questDAO = address(
-        //     new AdvisorVestingWallet(0xAE84Ea7997dfEefE77Cd39f88E2416A019F0541e)
-        // );
         // address ribbonatiDAO = address(
         //     new AdvisorVestingWallet(0xFb2CE50C4c8024E037e6be52dd658E2Be23d93Db)
         // );
 
-        // _BRR.mint(questDAO, 1_000_000e18);
         // _BRR.mint(ribbonatiDAO, 100_000e18);
 
         vm.stopBroadcast();
