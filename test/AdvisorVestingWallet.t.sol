@@ -86,16 +86,18 @@ contract AdvisorVestingWalletTest is Test {
         vesting.withdrawUnvested();
 
         assertEq(
-            beneficiaryTokenBalanceBeforeWithdraw + finalReleasableAmount,
-            token.balanceOf(beneficiary)
-        );
-        assertEq(
             projectOwnerTokenBalanceBeforeWithdraw + withdrawAmount,
             token.balanceOf(projectOwner)
         );
         assertEq(
+            beneficiaryTokenBalanceBeforeWithdraw + finalReleasableAmount,
+            token.balanceOf(beneficiary)
+        );
+        assertEq(
             token.balanceOf(beneficiary) + token.balanceOf(projectOwner),
-            totalVestingAmount
+            projectOwnerTokenBalanceBeforeWithdraw +
+                beneficiaryTokenBalanceBeforeWithdraw +
+                totalVestingAmount
         );
         assertEq(0, token.balanceOf(address(vesting)));
     }
@@ -122,7 +124,9 @@ contract AdvisorVestingWalletTest is Test {
             uint256 finalReleasableAmount,
             uint256 withdrawAmount
         ) = _getWithdrawVestingAmounts();
-        uint256 tokenBalanceBeforeWithdraw = token.balanceOf(projectOwner);
+        uint256 projectOwnerTokenBalanceBeforeWithdraw = token.balanceOf(
+            projectOwner
+        );
         uint256 beneficiaryTokenBalanceBeforeWithdraw = token.balanceOf(
             beneficiary
         );
@@ -137,17 +141,25 @@ contract AdvisorVestingWalletTest is Test {
 
         vesting.withdrawUnvested();
 
+        console.log(
+            "totalBalance",
+            token.balanceOf(beneficiary) + token.balanceOf(projectOwner)
+        );
+        console.log("totalVestingAmount", totalVestingAmount);
+
+        assertEq(
+            projectOwnerTokenBalanceBeforeWithdraw + withdrawAmount,
+            token.balanceOf(projectOwner)
+        );
         assertEq(
             beneficiaryTokenBalanceBeforeWithdraw + finalReleasableAmount,
             token.balanceOf(beneficiary)
         );
         assertEq(
-            tokenBalanceBeforeWithdraw + withdrawAmount,
-            token.balanceOf(projectOwner)
-        );
-        assertEq(
             token.balanceOf(beneficiary) + token.balanceOf(projectOwner),
-            totalVestingAmount
+            projectOwnerTokenBalanceBeforeWithdraw +
+                beneficiaryTokenBalanceBeforeWithdraw +
+                (finalReleasableAmount + withdrawAmount)
         );
         assertEq(0, token.balanceOf(address(vesting)));
     }
