@@ -9,28 +9,24 @@ contract AdvisorVestingWalletScript is Script {
     IBRR private constant _BRR =
         IBRR(0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884);
 
+    // December 1, 2023, 12:00 PM EST.
+    uint64 public constant _VESTING_START = 1701450000;
+
     function run() public {
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
         // For a list of our advisors and their vesting amounts:
         // https://docs.google.com/spreadsheets/d/1HEKMYYa_LeYzG87Li8gEu_-cR9mY9pTpoqe8MIhvU68/edit#gid=1253912565.
         address joeySantoro = address(
-            new AdvisorVestingWallet(0x7E47dF2a371fA3488963E30bc914942eDcC48Fe5)
-        );
-
-        // The two advisors below have had their allocations updated.
-        address cogsy = address(
-            new AdvisorVestingWallet(0x36bFF079a4532C2F818a65c6ad208cEA587417e7)
-        );
-        address nap = address(
-            new AdvisorVestingWallet(0x6531C0f565A451dB7d2409937230C4f153812953)
+            new AdvisorVestingWallet(
+                // The previous advisor vesting wallet had its tokens withdrawn, and is being
+                // redeployed with the following Gnosis Safe address.
+                0x4343F82Ccd66d37961486Bd054d3DB31f1197540,
+                _VESTING_START
+            )
         );
 
         _BRR.transfer(joeySantoro, 2_500_000e18);
-
-        // Each advisor below has already received a portion of their advisor tokens, the amounts below are the remainder.
-        _BRR.transfer(cogsy, 295_434e18);
-        _BRR.transfer(nap, 295_430e18);
 
         vm.stopBroadcast();
     }
