@@ -21,15 +21,11 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     address private constant _INITIAL_OWNER =
         0x8Fcc36CCa8dE6E5d6c44d4de5F8fbCa86742e0af;
 
-    // Advisor vesting starts on October 31, 2023 at 12:00pm EST.
-    uint64 private constant _VESTING_START = 1_698_768_000;
-
-    // Advisor vesting ends on October 31, 2024 at 12:00pm EST.
-    // 1730390400 - _VESTING_START = 31622400.
-    uint64 private constant _VESTING_DURATION = 31_622_400;
-
     // BRR token contract.
     address public constant TOKEN = 0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884;
+
+    // Advisors vest their tokens over 365 days.
+    uint64 private constant _VESTING_DURATION = 365 days;
 
     event WithdrawUnvested(
         uint256 finalReleasableAmount,
@@ -37,8 +33,15 @@ contract AdvisorVestingWallet is Ownable, VestingWallet {
     );
 
     constructor(
-        address beneficiaryAddress
-    ) VestingWallet(beneficiaryAddress, _VESTING_START, _VESTING_DURATION) {
+        address beneficiaryAddress,
+        uint64 vestingStartTimestamp
+    )
+        VestingWallet(
+            beneficiaryAddress,
+            vestingStartTimestamp,
+            _VESTING_DURATION
+        )
+    {
         _initializeOwner(_INITIAL_OWNER);
     }
 

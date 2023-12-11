@@ -9,6 +9,9 @@ import {AdvisorVestingWallet} from "src/AdvisorVestingWallet.sol";
 contract AdvisorVestingWalletTest is Test {
     using SafeTransferLib for address;
 
+    // December 1, 2023, 12:00 PM EST.
+    uint64 public constant _VESTING_START = 1701450000;
+
     AdvisorVestingWallet public immutable vesting;
     address public immutable projectOwner;
     address public immutable token;
@@ -17,7 +20,7 @@ contract AdvisorVestingWalletTest is Test {
     event ERC20Released(address indexed token, uint256 amount);
 
     constructor() {
-        vesting = new AdvisorVestingWallet(beneficiary);
+        vesting = new AdvisorVestingWallet(beneficiary, _VESTING_START);
         projectOwner = vesting.owner();
         token = vesting.TOKEN();
     }
