@@ -9,24 +9,23 @@ contract AdvisorVestingWalletScript is Script {
     IBRR private constant _BRR =
         IBRR(0x6d80d90ce251985bF41A98c6FDd6b7b975Fff884);
 
-    // December 1, 2023, 12:00 PM EST.
-    uint64 public constant _VESTING_START = 1701450000;
+    // January 1, 2024, 12:00 PM EST.
+    uint64 public constant _VESTING_START = 1704128400;
 
     function run() public {
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
 
         // For a list of our advisors and their vesting amounts:
         // https://docs.google.com/spreadsheets/d/1HEKMYYa_LeYzG87Li8gEu_-cR9mY9pTpoqe8MIhvU68/edit#gid=1253912565.
-        address joeySantoro = address(
+        address aintnoking = address(
             new AdvisorVestingWallet(
-                // The previous advisor vesting wallet had its tokens withdrawn, and is being
-                // redeployed with the following Gnosis Safe address.
-                0x4343F82Ccd66d37961486Bd054d3DB31f1197540,
+                0x334F95D8FFdB85a0297C6F7216E793d08ab45B48,
                 _VESTING_START
             )
         );
 
-        _BRR.transfer(joeySantoro, 2_500_000e18);
+        // 0.25% of the total supply.
+        _BRR.transfer(aintnoking, 2_500_000e18);
 
         vm.stopBroadcast();
     }
